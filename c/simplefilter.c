@@ -3,7 +3,7 @@
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
 #include <inttypes.h>
-
+#include <stdlib.h>
 /* 4 bytes IP address */
 typedef struct ip_address{
     u_char byte1;
@@ -80,8 +80,7 @@ typedef struct ip_address{
 	u_int size_ip;
 	u_int size_tcp;
 
-static void detEndian() 
-{
+static void detEndian() {
    unsigned int i = 1;
    char *c = (char*)&i;
    if (*c)    
@@ -89,6 +88,45 @@ static void detEndian()
    else
        printf("Big endian\n");
 }
+
+static void print_packet_info(const u_char *packet, struct pcap_pkthdr packet_header){
+	ethernet = (struct sniff_ethernet*)(packet);
+	ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+	size_ip = IP_HL(ip)*4;
+	if (size_ip < 20) {
+		printf("   * Invalid IP header length: %u bytes\n", size_ip);
+		exit(0);
+	}
+	tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
+	size_tcp = TH_OFF(tcp)*4;
+	if (size_tcp < 20) {
+		printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
+		exit(0);
+	}
+	
+
+	printf("srcIP: %d.%d.%d.%d (%d) -> dstIP: %d.%d.%d.%d (%d) len: %d\n",
+        ip->saddr.byte1,
+        ip->saddr.byte2,
+        ip->saddr.byte3,
+        ip->saddr.byte4,
+        ntohs(tcp->th_sport),
+        ip->daddr.byte1,
+        ip->daddr.byte2,
+        ip->daddr.byte3,
+        ip->daddr.byte4,
+        ntohs(tcp->th_dport),
+        packet_header.len
+        );
+
+}
+
+static void pHandler(u_char *args, const struct pcap_pkthdr *packet_header, const u_char *packet_body){
+    print_packet_info(packet_body, *packet_header);
+    return;
+}
+
+
 
 int main(int argc, char **argv) {
 
@@ -99,6 +137,8 @@ int main(int argc, char **argv) {
 	char filter_exp[] = "tcp";	/* The filter expression */
 	bpf_u_int32 mask;		/* The netmask of our sniffing device */
 	bpf_u_int32 net;		/* The IP of our sniffing device */
+
+	detEndian();
 
 	device = pcap_lookupdev(errbuf);
     if (device == NULL) {
@@ -129,46 +169,19 @@ int main(int argc, char **argv) {
 		 return(2);
 	 }
 
-	/* Grab a packet */
-	const u_char *packet;
-	struct pcap_pkthdr header;
-	for(int i = 0 ;i<20;i++){
-		packet = pcap_next(handle, &header);
-		//printf("Jacked a packet with length of [%d]\n", header.len);
-		if(header.len>0){
-			printf("i = %d Jacked a packet with length of [%d]\n", i,header.len);
-			break;
-		}
-	}
-	
-	
+	// /* Grab a packet */
+	// const u_char *packet;
+	// struct pcap_pkthdr header;
+	// for(int i = 0 ;i<20;i++){
+	// 	packet = pcap_next(handle, &header);
+	// 	//printf("Jacked a packet with length of [%d]\n", header.len);
+	// 	if(header.len>0){
+	// 		printf("i = %d Jacked a packet with length of [%d]\n", i,header.len);
+	// 		break;
+	// 	}
+	// }
+	pcap_loop(handle, 0, pHandler, NULL);
 
-	ethernet = (struct sniff_ethernet*)(packet);
-	ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-	size_ip = IP_HL(ip)*4;
-	if (size_ip < 20) {
-		printf("   * Invalid IP header length: %u bytes\n", size_ip);
-		return -1;
-	}
-	tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
-	size_tcp = TH_OFF(tcp)*4;
-	if (size_tcp < 20) {
-		printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
-		return -1;
-	}
-	detEndian();
-
-	printf("srcIP: %d.%d.%d.%d (%d) -> dstIP: %d.%d.%d.%d (%d)\n",
-        ip->saddr.byte1,
-        ip->saddr.byte2,
-        ip->saddr.byte3,
-        ip->saddr.byte4,
-        ntohs(tcp->th_sport),
-        ip->daddr.byte1,
-        ip->daddr.byte2,
-        ip->daddr.byte3,
-        ip->daddr.byte4,
-        ntohs(tcp->th_dport));
 
 	printf("Main finished \n");
 	pcap_close(handle);

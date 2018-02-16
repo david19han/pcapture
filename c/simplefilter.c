@@ -4,6 +4,15 @@
 #include <netinet/if_ether.h>
 #include <inttypes.h>
 
+/* 4 bytes IP address */
+typedef struct ip_address{
+    u_char byte1;
+    u_char byte2;
+    u_char byte3;
+    u_char byte4;
+}ip_address;
+
+
 /* Ethernet addresses are 6 bytes */
 #define ETHER_ADDR_LEN	6
 
@@ -28,7 +37,10 @@
 		u_char ip_ttl;		/* time to live */
 		u_char ip_p;		/* protocol */
 		u_short ip_sum;		/* checksum */
-		struct in_addr ip_src,ip_dst; /* source and dest address */
+		//struct in_addr ip_src,ip_dst; /* source and dest address */
+		 ip_address  saddr;      // Source address
+   	 ip_address  daddr;      // Destination address
+    u_int   op_pad;         // Option + Padding
 	};
 	#define IP_HL(ip)		(((ip)->ip_vhl) & 0x0f)
 	#define IP_V(ip)		(((ip)->ip_vhl) >> 4)
@@ -127,10 +139,9 @@ int main(int argc, char **argv) {
 			printf("i = %d Jacked a packet with length of [%d]\n", i,header.len);
 			break;
 		}
-	/* And close the session */
 	}
 	
-	pcap_close(handle);
+	
 
 	ethernet = (struct sniff_ethernet*)(packet);
 	ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
@@ -145,21 +156,22 @@ int main(int argc, char **argv) {
 		printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
 		return -1;
 	}
-	//payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp); struct in_addr ip_src,ip_dst; /* source and dest address */
 	detEndian();
 
-	printf("TCP src port is %d\n",ntohs(tcp->th_sport));
-	printf("TCP dst port is %d\n",ntohs(tcp->th_dport));
-	struct in_addr srcIP = ip->ip_src;
-	struct in_addr dstIP = ip->ip_dst;
-
-	uint32_t hostSrc = ntohl(srcIP.s_addr);
-	uint32_t hostDst = ntohl(dstIP.s_addr);
-
-	printf("%" PRIu32 "\n",hostSrc);
-	printf("%" PRIu32 "\n",hostDst);
+	printf("srcIP: %d.%d.%d.%d (%d) -> dstIP: %d.%d.%d.%d (%d)\n",
+        ip->saddr.byte1,
+        ip->saddr.byte2,
+        ip->saddr.byte3,
+        ip->saddr.byte4,
+        ntohs(tcp->th_sport),
+        ip->daddr.byte1,
+        ip->daddr.byte2,
+        ip->daddr.byte3,
+        ip->daddr.byte4,
+        ntohs(tcp->th_dport));
 
 	printf("Main finished \n");
+	pcap_close(handle);
 	return(0);
 }
 

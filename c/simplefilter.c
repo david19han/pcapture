@@ -126,8 +126,6 @@ static void pHandler(u_char *args, const struct pcap_pkthdr *packet_header, cons
     return;
 }
 
-
-
 int main(int argc, char **argv) {
 
 	char *device; /* Name of device (e.g. eth0, wlan0) */

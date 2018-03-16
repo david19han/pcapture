@@ -1,2 +1,2 @@
 #!/bin/sh
-sudo tcpdump -n -i en0 tcp | ./stdin
+sudo tcpdump -l -n -i en0 tcp | ./stdin

@@ -8,6 +8,7 @@ import (
     "strings"
     "strconv"
     "log"
+    "math"
 )
  
 
@@ -86,8 +87,11 @@ func main() {
             elapsed := t.Sub(start)
             diff := time.Second - elapsed 
 
+            total_mb := float64(total)*8*math.Pow10(-6)
+            diff_out := float64(diff) * math.Pow10(-9)
             fmt.Println()
-            fmt.Println("Total Length:",total,"|","Total time:",diff,"|", "TPut:",float64(total)/float64(diff))
+            fmt.Println("Total Length (Bytes):",total,"|","Total Length (MB):",total_mb,"|",
+                "Total time:",diff,"|", "TPut:", total_mb/diff_out)
             fmt.Println("----------------------------------------")
 
         default:

@@ -47,26 +47,17 @@ func main() {
     state := make(map[string]int)
     // history := make(map[string][]string)
 
-    startTime := 0.01
-    endTime := 0.01
-
-    start_txt := ""
-    end_txt := ""
-
-    isStart := false 
-    // isEnd := false
-
     go getInput(input)
     go timeout(timeChannel)
+
+    // start_clock := time.Now()
+    // end_clock := time.Now()
 
     for {
         select {
         case msg1 := <-timeChannel:
+            // end_clock = time.Now()
             start := time.Now()
-            // fmt.Println("----------------------------------------")
-            // fmt.Println(msg1)
-            // fmt.Println("----------------------------------------")
-
             fmt.Println("----------------------------------------")
             fmt.Println()
             
@@ -89,10 +80,6 @@ func main() {
             //flush map
             state = make(map[string]int)
             // history = make(map[string][]string)
-
-            //reset isStart
-            isStart = false
-            // isEnd = false
         
             //get current time again
             t := time.Now()
@@ -105,10 +92,15 @@ func main() {
             fmt.Println()
             fmt.Println("Total Length (Bytes):",total,"|","Total Length (MB):",total_mb,"|",
                 "Total time:",diff,"|", "TPut:", total_mb/diff_out)
-            fmt.Println("Real elapsed time is: ", endTime-startTime)
-            fmt.Println("Start",start_txt,"| end",end_txt)
+
+            // total_elapsed := float64(end_clock.Sub(start_clock) - elapsed)* math.Pow10(-9)
+            // fmt.Println("True elapsed time:",end_clock.Sub(start_clock),elapsed,total_elapsed)
+            // fmt.Println("True Tput:",total_mb/total_elapsed)
+            // start_clock = time.Now()
+
             fmt.Println("----------------------------------------")
 
+            
 
 
         default:
@@ -116,27 +108,6 @@ func main() {
                 case text := <-input:
                     s := strings.Split(text," ")
                     if(len(s) > 4 && strings.Compare(s[1],"IP") == 0){
-
-                        t_timeStamp := s[0]
-                        timeStamp:= strings.Split(t_timeStamp,":")
-                        secStr := strings.Split(timeStamp[len(timeStamp)-1],".")
-                        sec,err1 :=strconv.Atoi(secStr[0])
-                        dec,err2 :=strconv.Atoi(secStr[1])
-                        if (err1 != nil) && (err2 != nil){
-                            log.Fatal("bad conversion")
-                        }
-
-                        if !isStart {
-                            startTime = float64(sec)+float64(dec)*math.Pow10(-1*len(secStr[1]))
-                            start_txt = s[0]
-                            isStart = true
-                        }
-
-                        if isStart{
-                            endTime = float64(sec)+float64(dec)*math.Pow10(-1*len(secStr[1]))
-                            end_txt = s[0]
-                        }
-
                         src := s[2]
                         dst := s[4]
                         combined := src + " > " + dst 

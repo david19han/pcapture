@@ -55,21 +55,22 @@ func main() {
 
     for {
         select {
-        case msg1 := <-timeChannel:
+        case <-timeChannel:
             // end_clock = time.Now()
             start := time.Now()
-            fmt.Println("----------------------------------------")
-            fmt.Println()
+            // fmt.Println("----------------------------------------")
+            // fmt.Println()
             
-            fmt.Println(msg1)
+            // fmt.Println(msg1)
             //print out map
             total := 0
             
-            for key, value := range state {
+            for _, value := range state {
                 total += value
-                fmt.Println("Key:", key, "Value:", value)
+                // fmt.Println("Key:", key, "Value:", value)
             }
-            fmt.Println()
+            // fmt.Println()
+
             // fmt.Println("History")
             // for key, value := range history{
             //     fmt.Println("-Key:", key, "PACKETS:")
@@ -89,16 +90,17 @@ func main() {
 
             total_mb := float64(total)*8*math.Pow10(-6)
             diff_out := float64(diff) * math.Pow10(-9)
-            fmt.Println()
-            fmt.Println("Total Length (Bytes):",total,"|","Total Length (MB):",total_mb,"|",
-                "Total time:",diff,"|", "TPut:", total_mb/diff_out)
+            // fmt.Println()
+            // fmt.Println("Total Length (Bytes):",total,"|","Total Length (MB):",total_mb,"|",
+            //     "Total time:",diff,"|", "TPut:", total_mb/diff_out)
+            fmt.Println(total_mb/diff_out)
 
             // total_elapsed := float64(end_clock.Sub(start_clock) - elapsed)* math.Pow10(-9)
             // fmt.Println("True elapsed time:",end_clock.Sub(start_clock),elapsed,total_elapsed)
             // fmt.Println("True Tput:",total_mb/total_elapsed)
             // start_clock = time.Now()
 
-            fmt.Println("----------------------------------------")
+            // fmt.Println("----------------------------------------")
 
             
 
@@ -107,7 +109,9 @@ func main() {
             select{
                 case text := <-input:
                     s := strings.Split(text," ")
-                    if(len(s) > 4 && strings.Compare(s[1],"IP") == 0){
+                    // bool b1 := (strings.Compare(s[1],"IP") == 0)
+                    // bool b2 := (strings.Compare(s[1],"IP6") == 0)
+                    if(len(s) > 4 && ( (strings.Compare(s[1],"IP") == 0) || (strings.Compare(s[1],"IP6") == 0))){
                         src := s[2]
                         dst := s[4]
                         combined := src + " > " + dst 
@@ -156,9 +160,9 @@ func main() {
 
                         // history[combined] = append(history[combined], text)
 
-                        fmt.Println("Adding:",combined,"| Packets:",intVal,"| Text:")
-                        fmt.Println(text)
-                        fmt.Println()
+                        // fmt.Println("Adding:",combined,"| Packets:",intVal,"| Text:")
+                        // fmt.Println(text)
+                        // fmt.Println()
                     }else{
                         fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
                         fmt.Println()
